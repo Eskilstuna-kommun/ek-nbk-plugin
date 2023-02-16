@@ -1,15 +1,12 @@
 {
-  "name": "barebone",
+  "name": "origonbketuna",
   "version": "2.3.0",
   "description": "Just an example",
-  "main": "barebone.js",
+  "main": "origonbketuna.js",
   "scripts": {
-    "start": "npm run prebuild-sass | run-p watch-js watch-sass",
+    "start": "npm run watch-js",
     "watch-js": "webpack-dev-server --config ./tasks/webpack.dev.js --mode development",
-    "watch-sass": "node-sass -w --include-path scss scss/barebone-plugin.scss ../EK-extern/plugins/barebone.css",
-    "prebuild-sass": "node-sass --include-path scss scss/barebone-plugin.scss ../EK-extern/plugins/barebone.css",
-    "build": "webpack --config ./tasks/webpack.prod.js && npm run build-sass",
-    "build-sass": "node-sass --include-path scss scss/barebone-plugin.scss build/css/barebone.css"
+    "build": "webpack --config ./tasks/webpack.prod.js"
   },
   "author": "Origo",
   "license": "MIT",
@@ -22,8 +19,6 @@
     "eslint": "^8.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
-    "mini-css-extract-plugin": "^2.6.1",
-    "node-sass": "^7.0.3",
     "webpack": "^5.74.0",
     "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "^4.10.0",

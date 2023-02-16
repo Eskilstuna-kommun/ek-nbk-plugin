@@ -2,7 +2,7 @@ const webpack = require('webpack');
 
 module.exports = {
   entry: [
-    './barebone.js'
+    './origonbketuna.js'
   ],
   module: {
     rules: [{

@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const { merge } = require('webpack-merge');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
@@ -13,42 +12,15 @@ module.exports = merge(common, {
   },
   output: {
     path: `${__dirname}/../build/js`,
-    filename: 'barebone.min.js',
+    filename: 'origonbketuna.min.js',
     libraryTarget: 'var',
     libraryExport: 'default',
-    library: 'Barebone'
+    library: 'Origonbketuna'
   },
   devtool: false,
   mode: 'production',
-  module: {
-    rules: [{
-      test: /\.(sc|c)ss$/,
-      use: [{
-        loader: MiniCssExtractPlugin.loader
-      },
-      {
-        loader: 'css-loader'
-      },
-      {
-        loader: 'postcss-loader',
-        options: {
-          plugins: [
-            require('autoprefixer')({
-              env: '> 0.5%, last 2 versions, Firefox ESR, not dead, not ie <= 10'
-            })
-          ]
-        }
-      },
-      {
-        loader: 'sass-loader'
-      }
-      ]
-    }]
-  },
+  module: {},
   plugins: [
-    new webpack.optimize.AggressiveMergingPlugin(),
-    new MiniCssExtractPlugin({
-      filename: '../css/barebone.css'
-    })
+    new webpack.optimize.AggressiveMergingPlugin()
   ]
 });
