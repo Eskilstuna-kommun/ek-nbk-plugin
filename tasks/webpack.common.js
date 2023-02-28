@@ -2,7 +2,7 @@ const webpack = require('webpack');
 
 module.exports = {
   entry: [
-    './origonbketuna.js'
+    './src/origonbketuna.js'
   ],
   module: {
     rules: [{

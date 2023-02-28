@@ -2,7 +2,7 @@
   "name": "origonbketuna",
   "version": "2.3.0",
   "description": "Just an example",
-  "main": "origonbketuna.js",
+  "main": "src/origonbketuna.js",
   "scripts": {
     "start": "npm run watch-js",
     "watch-js": "webpack-dev-server --config ./tasks/webpack.dev.js --mode development",
