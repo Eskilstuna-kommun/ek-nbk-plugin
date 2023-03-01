@@ -1,35 +1,93 @@
 import Origo from 'Origo';
 import SizeControl from './size-control';
 import SetScaleControl from './set-scale-control';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import { Style, Stroke } from 'ol/style';
+import { Feature } from 'ol';
+import LineString from 'ol/geom/LineString';
 
 const Origonbketuna = function Origonbketuna(options = {}) {
   const {
-    paperSizes = ['a4', 'a3', 'a2', 'a1'],
-    scales,
-    initialScale
+    paperSizes = {
+      a4: [210, 297],
+      a3: [297, 420],
+      a2: [420, 594],
+      a1: [594, 841]
+    },
+    paperSize = 'a4',
+    scales = ['1:400', '1:800', '1:1000', '1:10000'],
+    initialScale = '1:400'
   } = options;
 
   const dom = Origo.ui.dom;
+  const vectorSource = new VectorSource();
   let viewer;
+  let map;
   let wrapperElement;
   let sizeControl;
   let setScaleControl;
+  let previewFeature;
+  let selectedScale;
+  let selectedSize = paperSize;
 
   function postMessage(message) {
     window.parent.postMessage(message, window.location.ancestorOrigins[0]);
   }
 
   function onMessage(message) {
-    console.log(message.data);
+    const data = message.data;
+    if (data !== 'ping') {
+      return;
+    }
+
+    console.log(data);
     postMessage('pong');
   }
 
+  function createPreviewFeature(center, size, scale) {
+    const paperDims = paperSizes[size];
+    const width = (paperDims[1] / 1000) * scale * 1000;
+    const height = (paperDims[0] / 1000) * scale * 1000;
+
+    const p1 = [center[0] - width / 2, center[1] + height / 2];
+    const p2 = [p1[0] + width, p1[1]];
+    const p3 = [p2[0], p2[1] - height];
+    const p4 = [p1[0], p3[1]];
+
+    const lineString = new LineString([p1, p2, p3, p4, p1]);
+
+    return new Feature(lineString);
+  }
+
+  function updatePreviewFeature(size, scale) {
+    if (previewFeature) {
+      vectorSource.removeFeature(previewFeature);
+    }
+
+    previewFeature = createPreviewFeature(
+      map.getView().getCenter(),
+      size,
+      scale
+    );
+    vectorSource.addFeature(previewFeature);
+
+    const extent = previewFeature.getGeometry().getExtent();
+    map.getView().fit(extent, { padding: [100, 100, 100, 100] });
+  }
+
   function setSize(size) {
-    console.log(size);
+    selectedSize = size;
+
+    // TODO: Zoom to extent
+    updatePreviewFeature(selectedSize, selectedScale);
   }
 
   function setScale(scale) {
-    console.log(scale);
+    selectedScale = scale;
+
+    // TODO: Zoom to extent
+    updatePreviewFeature(selectedSize, selectedScale);
   }
 
   return Origo.ui.Component({
@@ -48,10 +106,10 @@ const Origonbketuna = function Origonbketuna(options = {}) {
 
       // Size control
       sizeControl = SizeControl({
-        initialSize: paperSizes[0],
-        sizes: paperSizes
+        initialSize: paperSize,
+        sizes: Object.keys(paperSizes)
       });
-      sizeControl.on('change:size', setSize);
+      sizeControl.on('change:size', (x) => setSize(x.size));
 
       // Scale control
       setScaleControl = SetScaleControl({
@@ -59,10 +117,11 @@ const Origonbketuna = function Origonbketuna(options = {}) {
         initialScale
       });
 
-      setScaleControl.on('change:scale', setScale);
+      setScaleControl.on('change:scale', (x) => setScale(x.scale));
     },
     onAdd(evt) {
       viewer = evt.target;
+      map = viewer.getMap();
 
       this.addComponents([wrapperElement, sizeControl, setScaleControl]);
       this.render();
@@ -81,6 +140,29 @@ const Origonbketuna = function Origonbketuna(options = {}) {
       htmlString = setScaleControl.render();
       el = dom.html(htmlString);
       document.getElementById(wrapperElement.getId()).appendChild(el);
+
+      const style = new Style({
+        stroke: new Stroke({
+          color: '#ff000066',
+          width: 2
+        })
+      });
+
+      const vectorLayer = new VectorLayer({
+        source: vectorSource,
+        style,
+        group: 'none'
+      });
+      map.addLayer(vectorLayer);
+
+      let lastCenter = map.getView().getCenter();
+      map.on('moveend', () => {
+        const center = map.getView().getCenter();
+        const dx = center[0] - lastCenter[0];
+        const dy = center[1] - lastCenter[1];
+        previewFeature.getGeometry().translate(dx, dy);
+        lastCenter = center;
+      });
 
       this.dispatch('render');
     }
