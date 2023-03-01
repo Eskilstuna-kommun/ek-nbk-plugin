@@ -6,6 +6,6 @@ function sendMessage(message) {
   iframeElement.contentWindow.postMessage(message, iframeOrigin);
 }
 
-buttonElement.addEventListener('click', () => sendMessage('ping'));
+buttonElement.addEventListener('click', () => sendMessage('done'));
 
 window.addEventListener('message', (message) => console.log(message.data));

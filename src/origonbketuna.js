@@ -8,6 +8,7 @@ import { Feature } from 'ol';
 import LineString from 'ol/geom/LineString';
 
 const Origonbketuna = function Origonbketuna(options = {}) {
+  const pluginName = 'origonbketuna';
   const {
     paperSizes = {
       a4: [210, 297],
@@ -35,14 +36,35 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     window.parent.postMessage(message, window.location.ancestorOrigins[0]);
   }
 
-  function onMessage(message) {
+  async function onMessage(message) {
     const data = message.data;
-    if (data !== 'ping') {
+    if (data !== 'done') {
       return;
     }
 
-    console.log(data);
-    postMessage('pong');
+    const mapState = await saveMapState();
+    postMessage(mapState);
+  }
+
+  async function saveMapState() {
+    const coordinates = previewFeature.getGeometry().getCoordinates();
+    const p1 = coordinates[0];
+    const p2 = coordinates[2];
+
+    const result = {
+      paperSize: selectedSize.toUpperCase(),
+      scale: selectedScale * 1000,
+      extent: [p1, p2]
+    };
+
+    viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
+      state[pluginName] = result;
+    });
+    const response = await viewer.permalink.saveStateToServer(viewer);
+
+    result.mapStateId = response.mapStateId;
+
+    return result;
   }
 
   function createPreviewFeature(center, size, scale) {
@@ -78,20 +100,16 @@ const Origonbketuna = function Origonbketuna(options = {}) {
 
   function setSize(size) {
     selectedSize = size;
-
-    // TODO: Zoom to extent
     updatePreviewFeature(selectedSize, selectedScale);
   }
 
   function setScale(scale) {
     selectedScale = scale;
-
-    // TODO: Zoom to extent
     updatePreviewFeature(selectedSize, selectedScale);
   }
 
   return Origo.ui.Component({
-    name: 'origonbketuna',
+    name: pluginName,
     onInit() {
       window.addEventListener('message', onMessage);
 
@@ -129,18 +147,22 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     render() {
       const mapEl = document.getElementById(viewer.getMain().getId());
 
+      // Render wrapper
       let htmlString = wrapperElement.render();
       let el = dom.html(htmlString);
       mapEl.appendChild(el);
 
+      // Render SizeControl
       htmlString = sizeControl.render();
       el = dom.html(htmlString);
       document.getElementById(wrapperElement.getId()).appendChild(el);
 
+      // Render SetScaleControl
       htmlString = setScaleControl.render();
       el = dom.html(htmlString);
       document.getElementById(wrapperElement.getId()).appendChild(el);
 
+      // Create map layer for preview rectangle
       const style = new Style({
         stroke: new Stroke({
           color: '#ff000066',
@@ -155,6 +177,7 @@ const Origonbketuna = function Origonbketuna(options = {}) {
       });
       map.addLayer(vectorLayer);
 
+      // Update the preview rectangle when panning/zooming
       let lastCenter = map.getView().getCenter();
       map.on('moveend', () => {
         const center = map.getView().getCenter();
