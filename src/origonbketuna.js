@@ -1,11 +1,11 @@
 import Origo from 'Origo';
-import SizeControl from './size-control';
-import SetScaleControl from './set-scale-control';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { Style, Stroke } from 'ol/style';
 import { Feature } from 'ol';
 import LineString from 'ol/geom/LineString';
+import SizeControl from './size-control';
+import SetScaleControl from './set-scale-control';
 
 const Origonbketuna = function Origonbketuna(options = {}) {
   const pluginName = 'origonbketuna';
@@ -18,7 +18,8 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     },
     paperSize = 'a4',
     scales = ['1:400', '1:800', '1:1000', '1:10000'],
-    initialScale = '1:400'
+    initialScale = '1:400',
+    allowedOrigins
   } = options;
 
   const dom = Origo.ui.dom;
@@ -31,20 +32,6 @@ const Origonbketuna = function Origonbketuna(options = {}) {
   let previewFeature;
   let selectedScale;
   let selectedSize = paperSize;
-
-  function postMessage(message) {
-    window.parent.postMessage(message, window.location.ancestorOrigins[0]);
-  }
-
-  async function onMessage(message) {
-    const data = message.data;
-    if (data !== 'done') {
-      return;
-    }
-
-    const mapState = await saveMapState();
-    postMessage(mapState);
-  }
 
   async function saveMapState() {
     const coordinates = previewFeature.getGeometry().getCoordinates();
@@ -65,6 +52,22 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     result.mapStateId = response.mapStateId;
 
     return result;
+  }
+
+  async function onMessage(event) {
+    if (allowedOrigins) {
+      if (!allowedOrigins.some((origin) => origin === event.origin)) {
+        return;
+      }
+    }
+
+    const data = event.data;
+    if (data !== 'done') {
+      return;
+    }
+
+    const mapState = await saveMapState();
+    event.source.postMessage(mapState, event.origin);
   }
 
   function createPreviewFeature(center, size, scale) {
