@@ -1,9 +1,9 @@
 import Origo from 'Origo';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { Style, Stroke } from 'ol/style';
+import { Style, Stroke, Fill } from 'ol/style';
 import { Feature } from 'ol';
-import LineString from 'ol/geom/LineString';
+import { Polygon } from 'ol/geom';
 import SizeControl from './size-control';
 import SetScaleControl from './set-scale-control';
 
@@ -16,10 +16,13 @@ const Origonbketuna = function Origonbketuna(options = {}) {
       a2: [420, 594],
       a1: [594, 841]
     },
-    paperSize = 'a4',
+    initialPaperSize = 'a4',
     scales = ['1:400', '1:800', '1:1000', '1:10000'],
     initialScale = '1:400',
-    allowedOrigins
+    allowedOrigins = [],
+    previewAreaFillColor = 'rgba(123,104,238, 0.4)',
+    previewAreaBorderColor = 'rgba(0, 0, 0, 0.7)',
+    previewAreaBorderWidth = 2
   } = options;
 
   const dom = Origo.ui.dom;
@@ -31,7 +34,7 @@ const Origonbketuna = function Origonbketuna(options = {}) {
   let setScaleControl;
   let previewFeature;
   let selectedScale;
-  let selectedSize = paperSize;
+  let selectedPaperSize = initialPaperSize;
 
   async function saveMapState() {
     const coordinates = previewFeature.getGeometry().getCoordinates();
@@ -39,12 +42,13 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     const p2 = coordinates[2];
 
     const result = {
-      paperSize: selectedSize.toUpperCase(),
+      paperSize: selectedPaperSize.toUpperCase(),
       scale: selectedScale * 1000,
       extent: [p1, p2]
     };
 
     viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
+      // eslint-disable-next-line no-param-reassign
       state[pluginName] = result;
     });
     const response = await viewer.permalink.saveStateToServer(viewer);
@@ -80,9 +84,9 @@ const Origonbketuna = function Origonbketuna(options = {}) {
     const p3 = [p2[0], p2[1] - height];
     const p4 = [p1[0], p3[1]];
 
-    const lineString = new LineString([p1, p2, p3, p4, p1]);
+    const polygon = new Polygon([[p1, p2, p3, p4, p1]]);
 
-    return new Feature(lineString);
+    return new Feature(polygon);
   }
 
   function updatePreviewFeature(size, scale) {
@@ -102,13 +106,13 @@ const Origonbketuna = function Origonbketuna(options = {}) {
   }
 
   function setSize(size) {
-    selectedSize = size;
-    updatePreviewFeature(selectedSize, selectedScale);
+    selectedPaperSize = size;
+    updatePreviewFeature(selectedPaperSize, selectedScale);
   }
 
   function setScale(scale) {
     selectedScale = scale;
-    updatePreviewFeature(selectedSize, selectedScale);
+    updatePreviewFeature(selectedPaperSize, selectedScale);
   }
 
   return Origo.ui.Component({
@@ -127,7 +131,7 @@ const Origonbketuna = function Origonbketuna(options = {}) {
 
       // Size control
       sizeControl = SizeControl({
-        initialSize: paperSize,
+        initialSize: initialPaperSize,
         sizes: Object.keys(paperSizes)
       });
       sizeControl.on('change:size', (x) => setSize(x.size));
@@ -168,8 +172,11 @@ const Origonbketuna = function Origonbketuna(options = {}) {
       // Create map layer for preview rectangle
       const style = new Style({
         stroke: new Stroke({
-          color: '#ff000066',
-          width: 2
+          color: previewAreaBorderColor,
+          width: previewAreaBorderWidth
+        }),
+        fill: new Fill({
+          color: previewAreaFillColor
         })
       });
 
