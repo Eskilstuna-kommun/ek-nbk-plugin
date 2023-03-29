@@ -4,10 +4,10 @@ import VectorSource from 'ol/source/Vector';
 import { Style, Stroke, Fill } from 'ol/style';
 import { Feature } from 'ol';
 import { Polygon } from 'ol/geom';
-import SizeControl from './size-control';
-import SetScaleControl from './set-scale-control';
+import SizeControl from './controls/size-control';
+import SetScaleControl from './controls/set-scale-control';
 
-const Origonbketuna = function Origonbketuna(options = {}) {
+export default function Origonbketuna(options = {}) {
   const pluginName = 'origonbketuna';
   const {
     paperSizes = {
@@ -200,6 +200,4 @@ const Origonbketuna = function Origonbketuna(options = {}) {
       this.dispatch('render');
     }
   });
-};
-
-export default Origonbketuna;
+}

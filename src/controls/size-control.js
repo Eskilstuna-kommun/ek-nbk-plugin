@@ -1,6 +1,6 @@
 import Origo from 'Origo';
-import titleCase from './utils/titlecase';
-import round2 from './utils/round';
+import titleCase from '../utils/titlecase';
+import round2 from '../utils/round';
 
 export default function SizeControl({ initialSize, sizes }) {
   const sizeButtons = sizes.map((size) => Origo.ui.Button({
