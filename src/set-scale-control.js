@@ -1,5 +1,4 @@
 import Origo from 'Origo';
-import maputils from './utils/maputils';
 
 export default function SetScaleControl(options = {}) {
   const {
@@ -42,12 +41,6 @@ export default function SetScaleControl(options = {}) {
 
       if (initialScale) {
         this.onChangeScale(initialScale);
-      } else {
-        // const viewResolution = map.getView().getResolution();
-        // const projection = map.getView().getProjection();
-        // const mapScale = mapUtils.resolutionToScale(viewResolution, projection);
-        // const closest = scales.reduce((prev, curr) => (Math.abs(parseScale(curr) - mapScale) < Math.abs(parseScale(prev) - mapScale) ? curr : prev));
-        // this.onChangeScale(closest);
       }
     },
     render() {
