@@ -6,7 +6,9 @@
   "scripts": {
     "start": "npm run watch-js",
     "watch-js": "webpack-dev-server --config ./tasks/webpack.dev.js --mode development",
-    "build": "webpack --config ./tasks/webpack.prod.js"
+    "build": "webpack --config ./tasks/webpack.prod.js",
+    "lint": "eslint -c .eslintrc.json src/",
+    "lint-fix": "eslint -c .eslintrc.json src/ --fix"
   },
   "author": "Origo",
   "license": "MIT",

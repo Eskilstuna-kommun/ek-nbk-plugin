@@ -4,4 +4,4 @@ export default function titleCase(str) {
     return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
   }
   return '';
-};
+}
