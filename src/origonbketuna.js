@@ -1,9 +1,4 @@
 import Origo from 'Origo';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import { Style, Stroke, Fill } from 'ol/style';
-import { Feature } from 'ol';
-import { Polygon } from 'ol/geom';
 import SizeControl from './controls/size-control';
 import SetScaleControl from './controls/set-scale-control';
 
@@ -26,7 +21,8 @@ export default function Origonbketuna(options = {}) {
   } = options;
 
   const dom = Origo.ui.dom;
-  const vectorSource = new VectorSource();
+  const ol = Origo.ol;
+  const vectorSource = new ol.source.Vector();
   let viewer;
   let map;
   let wrapperElement;
@@ -84,9 +80,9 @@ export default function Origonbketuna(options = {}) {
     const p3 = [p2[0], p2[1] - height];
     const p4 = [p1[0], p3[1]];
 
-    const polygon = new Polygon([[p1, p2, p3, p4, p1]]);
+    const polygon = new ol.geom.Polygon([[p1, p2, p3, p4, p1]]);
 
-    return new Feature(polygon);
+    return new ol.Feature(polygon);
   }
 
   function updatePreviewFeature(size, scale) {
@@ -170,17 +166,17 @@ export default function Origonbketuna(options = {}) {
       document.getElementById(wrapperElement.getId()).appendChild(el);
 
       // Create map layer for preview rectangle
-      const style = new Style({
-        stroke: new Stroke({
+      const style = new ol.style.Style({
+        stroke: new ol.style.Stroke({
           color: previewAreaBorderColor,
           width: previewAreaBorderWidth
         }),
-        fill: new Fill({
+        fill: new ol.style.Fill({
           color: previewAreaFillColor
         })
       });
 
-      const vectorLayer = new VectorLayer({
+      const vectorLayer = new ol.layer.Vector({
         source: vectorSource,
         style,
         group: 'none'
