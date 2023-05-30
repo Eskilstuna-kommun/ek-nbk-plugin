@@ -33,14 +33,12 @@ export default function Origonbketuna(options = {}) {
   let selectedPaperSize = initialPaperSize;
 
   async function saveMapState() {
-    const coordinates = previewFeature.getGeometry().getCoordinates();
-    const p1 = coordinates[0];
-    const p2 = coordinates[2];
+    const extent = previewFeature.getGeometry().getExtent();
 
     const result = {
       paperSize: selectedPaperSize.toUpperCase(),
       scale: selectedScale * 1000,
-      extent: [p1, p2]
+      extent: extent
     };
 
     viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
