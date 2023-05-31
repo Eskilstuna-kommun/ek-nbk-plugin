@@ -21,7 +21,7 @@ export default function Origonbketuna(options = {}) {
     previewAreaBorderWidth = 2,
     parcelSearch = {
       url: '/geoserver/wfs',
-      layer: 'lm_fastighetet',
+      layer: 'lm_fastigheter',
       attribute: 'objekt_id'
     }
   } = options;
