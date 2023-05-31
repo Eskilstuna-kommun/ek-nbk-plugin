@@ -25,21 +25,24 @@ function sendMessage(message) {
 The message should be a stringified json:
 ``` js
 /* Save mapstate */
-JSON.stringify({ 
+const message = JSON.stringify({ 
     targetPlugin: 'origonbketuna', 
     type: 'mapstate', 
     data: {} 
     })
+
+sendMessage(message)
 ```
 ``` js
 /* Center the map over "some-parcel-uuid" */
-JSON.stringify({ 
+const message = JSON.stringify({ 
     targetPlugin: 'origonbketuna', 
     type: 'parcel', 
     data: { 
         id: 'some-parcel-uuid' 
         }
     })
+sendMessage(message)
 ```
 
 
