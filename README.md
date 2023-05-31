@@ -66,28 +66,28 @@ sendMessage(message)
       //Init origo
 		var origo = Origo('index.json');
 		origo.on('load', function (viewer) {
-            /*  The plugin can be run without input parameters. 
+            	/*  The plugin can be run without input parameters. 
                 These are the defaults */
-            const defaultParams = { 
-                paperSizes: {
-                    a4: [210, 297],
-                    a3: [297, 420],
-                    a2: [420, 594],
-                    a1: [594, 841]
-                },
-                initialPaperSize: 'a4',
-                scales: ['1:400', '1:800', '1:1000', '1:10000'],
-                initialScale: '1:400',
-                allowedOrigins: ['http://localhost:9008'],
-                previewAreaFillColor: 'rgba(123,104,238, 0.4)',
-                previewAreaBorderColor: 'rgba(0, 0, 0, 0.7)',
-                previewAreaBorderWidth: 2,
-                parcelSearch: {
-                    url: '/geoserver/wfs',
-                    layer: 'lm_fastigheter',
-                    attribute: 'objekt_id'
-                }
+		const defaultParams = { 
+			paperSizes: {
+			    a4: [210, 297],
+			    a3: [297, 420],
+			    a2: [420, 594],
+			    a1: [594, 841]
+			},
+			initialPaperSize: 'a4',
+			scales: ['1:400', '1:800', '1:1000', '1:10000'],
+			initialScale: '1:400',
+			allowedOrigins: ['http://localhost:9008'],
+			previewAreaFillColor: 'rgba(123,104,238, 0.4)',
+			previewAreaBorderColor: 'rgba(0, 0, 0, 0.7)',
+			previewAreaBorderWidth: 2,
+			parcelSearch: {
+			    url: '/geoserver/wfs',
+			    layer: 'lm_fastigheter',
+			    attribute: 'objekt_id'
 			}
+		}
 		var nbketuna = Origonbketuna(defaultParams);
 		viewer.addComponent(nbketuna);
 		});
