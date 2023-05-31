@@ -88,8 +88,8 @@ sendMessage(message)
                     attribute: 'objekt_id'
                 }
 			}
-			var nbketuna = Origonbketuna(defaultParams);
-			viewer.addComponent(nbketuna);
+		var nbketuna = Origonbketuna(defaultParams);
+		viewer.addComponent(nbketuna);
 		});
     </script>
 ```
