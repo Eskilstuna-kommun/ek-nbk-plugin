@@ -1,9 +1,10 @@
 import Origo from 'Origo';
 import SizeControl from './controls/size-control';
 import SetScaleControl from './controls/set-scale-control';
-
+import { fetch } from 'whatwg-fetch'
 export default function Origonbketuna(options = {}) {
   const pluginName = 'origonbketuna';
+  /* MapState Related */
   const {
     paperSizes = {
       a4: [210, 297],
@@ -17,7 +18,12 @@ export default function Origonbketuna(options = {}) {
     allowedOrigins = [],
     previewAreaFillColor = 'rgba(123,104,238, 0.4)',
     previewAreaBorderColor = 'rgba(0, 0, 0, 0.7)',
-    previewAreaBorderWidth = 2
+    previewAreaBorderWidth = 2,
+    parcelSearch = {
+      url: '/geoserver/wfs',
+      layer: 'lm_fastighetet',
+      attribute: 'objekt_id'
+    }
   } = options;
 
   const dom = Origo.ui.dom;
@@ -31,6 +37,9 @@ export default function Origonbketuna(options = {}) {
   let previewFeature;
   let selectedScale;
   let selectedPaperSize = initialPaperSize;
+
+  /* parcelSearch related */
+  const isUUID = new RegExp('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
 
   async function saveMapState() {
     const extent = previewFeature.getGeometry().getExtent();
@@ -58,16 +67,77 @@ export default function Origonbketuna(options = {}) {
         return;
       }
     }
+    /* recieved message stub */
+    let msg;
+    const msgStub = {
+      targetPlugin: '', // Target plugin for the message
+      type: '',   // Target function within plugin. Can be empty if plugin only listens for one message
+      data: {}    // Actual message payload. Can be empty if plugin only listens for one message
+    };
 
-    const data = event.data;
-    if (data !== 'done') {
+
+    try {
+      const recievedMsg = JSON.parse(event.data);
+      msg = Object.assign(msgStub, recievedMsg);
+      // If Message recieved but belongs to other plugin
+      if (msg.targetPlugin !== 'origonbketuna') {
+        return;
+      }
+    } catch (e) {
+      console.log('Error while parsing mapstate message in origonbketuna');
+      console.log(e);
       return;
     }
 
+    if (msg.type === 'mapstate') {
+      await handleMapStateRequest({ event, msg });
+    } else if (msg.type === 'parcel') {
+      await handleParcelRequest({ event, msg });
+    }
+  }
+
+  async function handleParcelRequest({ event, msg }) {
+    let id = '';
+    try {
+      id += ('' + msg.data.id).trim();
+      if (!isUUID.test(id)) {
+        return;
+      }
+    } catch (e) {
+      console.log('Error while parsing parcel id in origonbketuna');
+      console.log(e);
+      return;
+    }
+
+    /* WFS Parameters */
+    const mapEpsg = map.getView().getProjection().getCode();
+    let q = new URLSearchParams({
+      service: 'WFS',
+      version: '2.0.0',
+      request: 'getfeature',
+      typeName: parcelSearch.layer,
+      srsName: mapEpsg,
+      count: '1',
+      outputFormat: 'application/json',
+      cql_filter: `${parcelSearch.attribute} ILIKE '${id}'`
+    });
+
+    const url = parcelSearch.url.endsWith('?') ? parcelSearch.url : parcelSearch.url + '?';
+
+    const resp = await fetch(url + q);
+    const json = await resp.json();
+
+    const features = new ol.format.GeoJSON().readFeatures(json);
+
+    if (features.length) {
+      let g = features[0].getGeometry();
+      map.getView().fit(g);
+    }
+  }
+  async function handleMapStateRequest({ event, msg }) {
     const mapState = await saveMapState();
     event.source.postMessage(mapState, event.origin);
   }
-
   function createPreviewFeature(center, size, scale) {
     const paperDims = paperSizes[size];
     const width = (paperDims[1] / 1000) * scale * 1000;
