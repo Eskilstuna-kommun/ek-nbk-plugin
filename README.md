@@ -84,7 +84,7 @@ sendMessage(message)
 			previewAreaBorderWidth: 2,
 			parcelAreaFillColor: 'rgba(255, 0, 0, 0.1)',
 			parcelAreaBorderColor: 'rgba(255, 0, 0, 0.5)',
-    		parcelAreaBorderWidth: 1,
+			parcelAreaBorderWidth: 1,
 			parcelSearch: {
 			    url: '/geoserver/wfs',
 			    layer: 'lm_fastigheter',
