@@ -1,7 +1,8 @@
+import { fetch } from 'whatwg-fetch';
 import Origo from 'Origo';
 import SizeControl from './controls/size-control';
 import SetScaleControl from './controls/set-scale-control';
-import { fetch } from 'whatwg-fetch'
+
 export default function Origonbketuna(options = {}) {
   const pluginName = 'origonbketuna';
   /* MapState Related */
@@ -19,6 +20,9 @@ export default function Origonbketuna(options = {}) {
     previewAreaFillColor = 'rgba(123,104,238, 0.4)',
     previewAreaBorderColor = 'rgba(0, 0, 0, 0.7)',
     previewAreaBorderWidth = 2,
+    parcelAreaFillColor = 'rgba(255, 0, 0, 0.1)',
+    parcelAreaBorderColor = 'rgba(255, 0, 0, 0.5)',
+    parcelAreaBorderWidth = 1,
     parcelSearch = {
       url: '/geoserver/wfs',
       layer: 'lm_fastigheter',
@@ -39,7 +43,8 @@ export default function Origonbketuna(options = {}) {
   let selectedPaperSize = initialPaperSize;
 
   /* parcelSearch related */
-  const isUUID = new RegExp('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+  const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  let parcelFeature;
 
   async function saveMapState() {
     const extent = previewFeature.getGeometry().getExtent();
@@ -47,7 +52,7 @@ export default function Origonbketuna(options = {}) {
     const result = {
       paperSize: selectedPaperSize.toUpperCase(),
       scale: selectedScale * 1000,
-      extent: extent
+      extent
     };
 
     viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
@@ -71,47 +76,56 @@ export default function Origonbketuna(options = {}) {
     let msg;
     const msgStub = {
       targetPlugin: '', // Target plugin for the message
-      type: '',   // Target function within plugin. Can be empty if plugin only listens for one message
-      data: {}    // Actual message payload. Can be empty if plugin only listens for one message
+      type: '', // Target function within plugin. Can be empty if plugin only listens for one message
+      data: {} // Actual message payload. Can be empty if plugin only listens for one message
     };
 
-
     try {
-      const recievedMsg = JSON.parse(event.data);
+      const recievedMsg = event.data;
       msg = Object.assign(msgStub, recievedMsg);
       // If Message recieved but belongs to other plugin
       if (msg.targetPlugin !== 'origonbketuna') {
         return;
       }
     } catch (e) {
+      /* eslint-disable */
       console.log('Error while parsing mapstate message in origonbketuna');
       console.log(e);
+      /* eslint-enable */
       return;
     }
 
     if (msg.type === 'mapstate') {
-      await handleMapStateRequest({ event, msg });
+      /* eslint-disable */
+      /* no-use-before-define: Should be ok since messages are passed after plugin is initiated */
+      await handleMapStateRequest({ event });
     } else if (msg.type === 'parcel') {
-      await handleParcelRequest({ event, msg });
+      await handleParcelRequest({ msg });
+      /* eslint-enable */
     }
   }
 
-  async function handleParcelRequest({ event, msg }) {
+  async function handleParcelRequest({ msg }) {
+    /* Always clear parcelFeature */
+    vectorSource.removeFeature(parcelFeature);
+
     let id = '';
     try {
-      id += ('' + msg.data.id).trim();
+      id += (`${msg.data.id}`).trim();
       if (!isUUID.test(id)) {
         return;
       }
     } catch (e) {
+      /* eslint-disable */
       console.log('Error while parsing parcel id in origonbketuna');
       console.log(e);
+      /* eslint-enable */
       return;
     }
 
     /* WFS Parameters */
     const mapEpsg = map.getView().getProjection().getCode();
-    let q = new URLSearchParams({
+    const q = new URLSearchParams({
       service: 'WFS',
       version: '2.0.0',
       request: 'getfeature',
@@ -122,19 +136,33 @@ export default function Origonbketuna(options = {}) {
       cql_filter: `${parcelSearch.attribute} ILIKE '${id}'`
     });
 
-    const url = parcelSearch.url.endsWith('?') ? parcelSearch.url : parcelSearch.url + '?';
+    const url = parcelSearch.url.endsWith('?') ? parcelSearch.url : `${parcelSearch.url}?`;
 
     const resp = await fetch(url + q);
     const json = await resp.json();
 
     const features = new ol.format.GeoJSON().readFeatures(json);
 
-    if (features.length) {
-      let g = features[0].getGeometry();
-      map.getView().fit(g);
-    }
+    parcelFeature = features[0] || undefined;
+
+    if (!parcelFeature) return;
+
+    parcelFeature = features[0];
+    const style = new ol.style.Style({
+      stroke: new ol.style.Stroke({
+        color: parcelAreaBorderColor,
+        width: parcelAreaBorderWidth
+      }),
+      fill: new ol.style.Fill({
+        color: parcelAreaFillColor
+      })
+    });
+    parcelFeature.setStyle(style);
+    const g = parcelFeature.getGeometry();
+    map.getView().fit(g);
+    vectorSource.addFeature(parcelFeature);
   }
-  async function handleMapStateRequest({ event, msg }) {
+  async function handleMapStateRequest({ event }) {
     const mapState = await saveMapState();
     event.source.postMessage(mapState, event.origin);
   }

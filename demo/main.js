@@ -7,10 +7,10 @@ function sendMessage(message) {
   iframeElement.contentWindow.postMessage(message, iframeOrigin);
 }
 
-buttonElement.addEventListener('click', () => sendMessage(JSON.stringify({ targetPlugin: 'origonbketuna', type: 'mapstate', data: {} })));
+buttonElement.addEventListener('click', () => sendMessage({ targetPlugin: 'origonbketuna', type: 'mapstate', data: {} }));
 parcelButtonElement.addEventListener('click', () => {
   let parcel = document.querySelector('#parcelInput').value;
-  sendMessage(JSON.stringify({ targetPlugin: 'origonbketuna', type: 'parcel', data: { id: parcel } }));
+  sendMessage({ targetPlugin: 'origonbketuna', type: 'parcel', data: { id: parcel } });
 });
 
 window.addEventListener('message', (message) => console.log('msg recieved from iframe: ', message.data));
