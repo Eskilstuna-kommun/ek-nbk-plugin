@@ -22,7 +22,7 @@ function sendMessage(message) {
 }
 ```
 
-The message should be a stringified json:
+The message should be a json object:
 ``` js
 /* Save mapstate */
 const message = { 
