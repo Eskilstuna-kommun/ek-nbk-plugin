@@ -23,7 +23,8 @@ export default function SetScaleControl(options = {}) {
         contentCls: 'bg-grey-lighter text-smallest rounded',
         buttonCls: 'bg-white border text-black',
         buttonIconCls: 'black',
-        text: 'Välj skala'
+        text: 'Välj skala',
+        style: 'padding: 0px;'
       });
       this.addComponents([selectScale]);
     },
@@ -45,10 +46,12 @@ export default function SetScaleControl(options = {}) {
     },
     render() {
       return `
-      <div class="padding-top-large"></div>
-      <h6>Välj utskriftsskala</h6>
-      <div class="padding-smaller o-tooltip active">
-        ${selectScale.render()}
+      <div class="padding-top-small"></div>
+        <div class="flex padding-small">
+        <h6>Välj utskriftsskala: </h6>
+        <div class="padding-left-smallest o-tooltip active" style="flex:1">
+          ${selectScale.render()}
+        </div>
       </div>`;
     }
   });

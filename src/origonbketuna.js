@@ -13,9 +13,7 @@ export default function Origonbketuna(options = {}) {
       a2: [420, 594],
       a1: [594, 841]
     },
-    initialPaperSize = 'a4',
     scales = ['1:400', '1:800', '1:1000', '1:10000'],
-    initialScale = '1:400',
     allowedOrigins = [],
     previewAreaFillColor = 'rgba(123,104,238, 0.4)',
     previewAreaBorderColor = 'rgba(0, 0, 0, 0.7)',
@@ -40,19 +38,22 @@ export default function Origonbketuna(options = {}) {
   let setScaleControl;
   let previewFeature;
   let selectedScale;
+  let initialScale = '1:400';
+  let initialPaperSize = 'a4';
   let selectedPaperSize = initialPaperSize;
-
   /* parcelSearch related */
   const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
   let parcelFeature;
 
+  function loadMapState(mapState) {
+    initialScale = mapState.scale ? `1:${mapState.scale}` : initialScale;
+    initialPaperSize = mapState.paperSize.toLowerCase() || initialPaperSize;
+    selectedPaperSize = initialPaperSize;
+  }
   async function saveMapState() {
-    const extent = previewFeature.getGeometry().getExtent();
-
     const result = {
       paperSize: selectedPaperSize.toUpperCase(),
-      scale: selectedScale * 1000,
-      extent
+      scale: selectedScale * 1000
     };
 
     viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
@@ -60,9 +61,7 @@ export default function Origonbketuna(options = {}) {
       state[pluginName] = result;
     });
     const response = await viewer.permalink.saveStateToServer(viewer);
-
     result.mapStateId = response.mapStateId;
-
     return result;
   }
 
@@ -220,6 +219,13 @@ export default function Origonbketuna(options = {}) {
           left: '4rem'
         }
       });
+    },
+    onAdd(evt) {
+      viewer = evt.target;
+
+      /* load old print rectangle */
+      const mapState = viewer.getUrlParams()[pluginName];
+      if (mapState) loadMapState(mapState);
 
       // Size control
       sizeControl = SizeControl({
@@ -235,9 +241,6 @@ export default function Origonbketuna(options = {}) {
       });
 
       setScaleControl.on('change:scale', (x) => setScale(x.scale));
-    },
-    onAdd(evt) {
-      viewer = evt.target;
       map = viewer.getMap();
 
       this.addComponents([wrapperElement, sizeControl, setScaleControl]);
