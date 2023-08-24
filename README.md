@@ -4,6 +4,7 @@ This plugin allows origo to recieve POST messages when it is used within an ifra
 - Saving mapstate that is extended with print settings
 - Parcel UUID to center the map
 
+
 ### Development
 
 ``npm run start`` will serve the demo site:  http://localhost:9008/demo/
@@ -11,6 +12,10 @@ This plugin allows origo to recieve POST messages when it is used within an ifra
 
 Webpack will attemt to build the plugin to ``./../EK-extern/plugins``. Make sure to run [EK-extern](https://github.com/Eskilstuna-kommun/EK-extern) dev env in a folder paralell to this one.
 
+### Building for production
+
+* Run ```npm run build``` 
+* Copy the contents of ./build/js/ to suitable folder in your origo deployment. In the example index.html below the plugin has been placed inside plugins-folder of the origo-instance.
 
 ### Example usage of ek-nbk-plugin
 

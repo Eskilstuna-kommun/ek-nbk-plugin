@@ -51,9 +51,11 @@ export default function Origonbketuna(options = {}) {
     selectedPaperSize = initialPaperSize;
   }
   async function saveMapState() {
+    const extent = previewFeature.getGeometry().getExtent();
     const result = {
       paperSize: selectedPaperSize.toUpperCase(),
-      scale: selectedScale * 1000
+      scale: selectedScale * 1000,
+      extent
     };
 
     viewer.permalink.addParamsToGetMapState(pluginName, (state) => {
