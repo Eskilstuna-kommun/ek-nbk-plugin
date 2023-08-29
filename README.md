@@ -12,6 +12,10 @@ This plugin allows origo to recieve POST messages when it is used within an ifra
 
 Webpack will attemt to build the plugin to ``./../EK-extern/plugins``. Make sure to run [EK-extern](https://github.com/Eskilstuna-kommun/EK-extern) dev env in a folder paralell to this one.
 
+Include the following script tag in `./../EK-extern/index.html` to initate the development version of this plugin:
+`<script src="plugins/origonbketuna.js"></script>`.
+
+
 ### Building for production
 
 * Run ```npm run build``` 
